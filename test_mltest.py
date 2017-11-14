@@ -1,7 +1,7 @@
 import pytest
 import tensorflow as tf 
 import numpy as np
-import mltest
+import mltest.mltest as mltest
 
 slim = tf.contrib.slim
 
