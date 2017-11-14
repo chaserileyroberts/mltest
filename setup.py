@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
   name='mltest',
-  version='0.0.4',
+  version='0.0.5',
   packages=['mltest'],
   install_requires=[
     "tensorflow",
