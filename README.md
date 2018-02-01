@@ -12,6 +12,8 @@ sudo pip install mltest
 
 ## How to use
 
+See the medium post
+
 ```python
 import mltest
 import your_model_file
@@ -28,8 +30,8 @@ def test_mltest_suite():
   model = your_model_file.build_model(input_tensor, label_tensor)
   # Give it some random input (Be sure to seed it!!).
   feed_dict = {
-      input_tensor: np.random.normal(size=(10, 100))
-      labe
+      input_tensor: np.random.normal(size=(10, 100)),
+      label_tensor: np.random.randint((100))
   }
   # Run the test suite!
   mltest.test_suite(
