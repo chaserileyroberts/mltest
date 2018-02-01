@@ -1,15 +1,16 @@
 # mltest
-ML testing framework to simplify writing ML unit tests.
-How to install
+Machine learning testing framework.
 
 [![Build Status](https://travis-ci.org/Thenerdstation/mltest.svg?branch=master)](https://travis-ci.org/Thenerdstation/mltest)
+
+## How to install
 
 ```shell
 sudo pip install mltest
 ```
 
 
-How to use
+## How to use
 
 ```python
 import mltest
