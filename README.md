@@ -39,16 +39,21 @@ def test_mltest_suite():
 
 
 Buy me pizza
+
 BTC:
+
 1HkrH3PGToX6MiwfULwW5a4Et8ffhp6nY9
 
 ETH:
+
 0xf3DAd2b40a7621e42FfFDb060d5c07ecd1A148a3
 
 LTC:
+
 Lc7z3mM4HturLoyoFAZHSbKns1YS1j1jaG
 
 ZEC:
+
 t1WRDYKBYF29cad7Ft32SJeyRpKbTRdVT5g
 
 Half of all proceeds will be donated to make a wish foundation.
