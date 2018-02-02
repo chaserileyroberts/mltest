@@ -325,6 +325,13 @@ def test_suite(
           without pass in values to the variables in feed_dict.
       tf.errors.InvalidArgumentError: If you are missing a variable that
           train_op depends on in feed_dict.
+    Raises:
+        VaraiblesChangeException: If variables don't change when they
+            should and visa-versa.
+        RangeException: If the values in out_tensor do not meet
+            range expectations.
+        DependencyException: If train_op doesn't depend on something
+            in feed_dict.
     """
 
     # Grab the nessissary variables.
