@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import random
 
 
 class VariablesChangeException(Exception):
@@ -14,16 +15,32 @@ class DependencyException(Exception):
     pass
 
 
-def setup(tf_seed=0, np_seed=0, reset_graph=True):
+def setup(tf_seed=0, np_seed=0, python_seed=0, reset_graph=True):
+    """Automatically setup standard testing configuration.
+    Resets tensorflow's default graph and sets various seeds.
+    Args:
+        tf_seed: Seed for tensorflow. If None, no seed is set.
+        np_seed: Seed for numpy. If None, no seed is set.
+        python_seed: Seed for random module. If None, no seed is set
+        reset_graph: Flag to reset the default graph. Default is True.
+    """
     if reset_graph:
         tf.reset_default_graph()
     if tf_seed is not None:
         tf.set_random_seed(tf_seed)
     if np_seed is not None:
         np.random.seed(np_seed)
+    if python_seed is not None:
+        random.seed(python_seed)
 
 
 def _initalizer_helper(sess_conf, init_op):
+    """Initialization helper.
+    Args:
+        sess_conf: Session configuration.
+        init_op: Initialization operation.
+            If None, tf.global_variables_initializer() is used.
+    """
     session = tf.Session(config=sess_conf)
     if init_op is None:
         session.run(tf.global_variables_initializer())
@@ -40,6 +57,19 @@ def _var_change_helper(
     var_list,
     feed_dict,
         init_op):
+    """Helper function to see if a variable changed.
+    Args:
+        vargs_change: Boolean. Whether vars should change or not.
+        op: Training operation. Used to change the variables.
+        sess_conf: Optional session configuration.
+        scope: Scope of variables to test. Can not be used with var_list.
+        var_list: List of variables to test, can not be used with scope.
+        feed_dict: Feed_dict for sess.run()
+        init_op: Initialization operation.
+    Raises:
+        VariablesChangeException: If a variables changes when it
+            shouldn't have and visa-versa.
+    """
     session = _initalizer_helper(sess_conf, init_op)
     if scope != "" and var_list is not None:
         raise AssertionError(
@@ -74,6 +104,17 @@ def assert_vars_same(
     var_list=None,
     feed_dict=None,
         init_op=None):
+    """Assert variables stay the same.
+    Args:
+        op: Training operation. Used to change the variables.
+        sess_conf: Optional session configuration.
+        scope: Scope of variables to test. Can not be used with var_list.
+        var_list: List of variables to test, can not be used with scope.
+        feed_dict: Feed_dict for sess.run()
+        init_op: Initialization operation.
+    Raises:
+        VariablesChangeException: If a variable changes.
+    """
     _var_change_helper(False, op, sess_conf, scope,
                        var_list, feed_dict, init_op)
 
@@ -85,6 +126,17 @@ def assert_vars_change(
     var_list=None,
     feed_dict=None,
         init_op=None):
+    """Assert variables change.
+    Args:
+        op: Training operation. Used to change the variables.
+        sess_conf: Optional session configuration.
+        scope: Scope of variables to test. Can not be used with var_list.
+        var_list: List of variables to test, can not be used with scope.
+        feed_dict: Feed_dict for sess.run()
+        init_op: Initialization operation.
+    Raises:
+        VariablesChangeException: If a variable doesn't change.
+    """
     _var_change_helper(
         True, op, sess_conf, scope, var_list, feed_dict, init_op)
 
@@ -95,6 +147,16 @@ def assert_any_greater_than(
     sess_conf,
     feed_dict=None,
         init_op=None):
+    """Assert any values in the tensor are greater than a given value.
+    Args:
+        tensor: Tensor to check.
+        value: The given value.
+        sess_conf: Session configuration.
+        feed_dict: Feed_dict to be passed to sess.run().
+        init_op: Initialization operation.
+    Raises:
+        RangeException: If nothing is greater than value in tensor.
+    """
     session = _initalizer_helper(sess_conf, init_op)
     output = session.run(tensor, feed_dict=feed_dict)
     try:
@@ -111,6 +173,16 @@ def assert_all_greater_than(
     sess_conf=None,
     feed_dict=None,
         init_op=None):
+    """Assert all tensor values are greater than a given value.
+    Args:
+        tensor: Tensor to check.
+        value: The minimum value.
+        sess_conf: Session configuration.
+        feed_dict: Feed_dict to be passed to sess.run().
+        init_op: Initialization operation.
+    Raises:
+        RangeException: If something in tensor is less than or equal to value.
+    """
     session = _initalizer_helper(sess_conf, init_op)
     output = session.run(tensor, feed_dict=feed_dict)
     try:
@@ -127,6 +199,17 @@ def assert_any_less_than(
     sess_conf,
     feed_dict=None,
         init_op=None):
+    """Assert any tensor values are less than a given value.
+    Args:
+        tensor: Tensor to check.
+        value: The given value.
+        sess_conf: Session configuration.
+        feed_dict: Feed_dict to be passed to sess.run().
+        init_op: Initialization operation.
+    Raises:
+        RangeException: If everything in tensor is greater than or
+            equal to value.
+    """
     session = _initalizer_helper(sess_conf, init_op)
     output = session.run(tensor, feed_dict=feed_dict)
     try:
@@ -143,6 +226,17 @@ def assert_all_less_than(
     sess_conf=None,
     feed_dict=None,
         init_op=None):
+    """Assert all tensor values are less than a given value.
+    Args:
+        tensor: Tensor to check.
+        value: The maximum value.
+        sess_conf: Session configuration.
+        feed_dict: Feed_dict to be passed to sess.run().
+        init_op: Initialization operation.
+    Raises:
+        RangeException: If anything in tensor is greater than or
+            equal to value.
+    """
     session = _initalizer_helper(sess_conf, init_op)
     output = session.run(tensor, feed_dict=feed_dict)
     try:
@@ -158,6 +252,19 @@ def assert_input_dependency(
     feed_dict,
     sess_conf=None,
         init_op=None):
+    """Assert that the train_op depends on everything in feed_dict.
+    This test works by removing one item from the feed_dict at a time
+    and asserting that the train_op fails.
+    Args:
+        train_op: Training operation.
+        feed_dict: The feed_dict to be passed to sess.run()
+            Make sure to only include tensors that train_op should depend on.
+        sess_conf: Session configuration.
+        init_op: Initialization operation.
+    Raises:
+        DependencyException: If train_op doesn't depend on something
+            in feed_dict
+    """
     if feed_dict is None:
         pass  # Not sure what to do in this case...
     session = _initalizer_helper(sess_conf, init_op)
@@ -193,7 +300,7 @@ def test_suite(
       train_op: Op you call to train the model.
       sess_conf: Session configuration to use.
       output_range: Optional. The range you expect your output to have.
-          If None, then we test if the output has both postivie and negative
+          If None, then we test if the output has both positive and negative
           values.
       scope: Scope of the variables that are to be trained by the train_op.
           Default is "". Can not be used with var_list.
