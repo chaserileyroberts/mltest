@@ -5,9 +5,12 @@ Machine learning testing framework.
 
 ## How to install
 
+You can either use it directly from pip
 ```shell
 sudo pip install mltest
 ```
+
+Or you can copy and paste the mltest.py file. Everthing is self contained and opensourced, so feel free to do what you want!
 
 
 ## How to use
