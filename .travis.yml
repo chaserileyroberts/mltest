@@ -7,3 +7,5 @@ install:
 script:
   - pytest
   - pep8 .
+notifications:
+  email: false
