@@ -15,7 +15,7 @@ Or you can copy and paste the mltest.py file. Everthing is self contained and op
 
 ## How to use
 
-See the medium post
+See the [medium post](https://medium.com/@keeper6928/mltest-automatically-test-neural-network-models-in-one-function-call-eb6f1fa5019d)
 
 ```python
 import mltest
