@@ -2,7 +2,8 @@ language: python
 python:
   - "3.5"
 install:
-  pip install -r requirements.txt
+  - pip install -r requirements.txt
+  - sudo apt-get install pep8
 script:
   - pytest
   - pep8 .
