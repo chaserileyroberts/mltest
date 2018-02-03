@@ -317,21 +317,14 @@ def test_suite(
           the graph don't change when we call train_op. Default to True.
       test_output_range: Whether we do the output range check. Default to True.
     Raises:
-      mltest.VariablesChangeException: If a variable does/does not change
+      VariablesChangeException: If a variable does/does not change
           when it should not/should have.
-      mltest.RangeException: If the output range does not conform to what was
+      RangeException: If the output range does not conform to what was
           expected.
-      mltest.DependencyException: If the train_op can be called successfully
+      DependencyException: If the train_op can be called successfully
           without pass in values to the variables in feed_dict.
       tf.errors.InvalidArgumentError: If you are missing a variable that
           train_op depends on in feed_dict.
-    Raises:
-        VaraiblesChangeException: If variables don't change when they
-            should and visa-versa.
-        RangeException: If the values in out_tensor do not meet
-            range expectations.
-        DependencyException: If train_op doesn't depend on something
-            in feed_dict.
     """
 
     # Grab the nessissary variables.
