@@ -24,6 +24,8 @@ import your_model_file
 import tensorflow as tf
 import numpy as np
 
+def setup():
+  mltest.setup()
 
 # Build your test function.
 def test_mltest_suite():
@@ -43,7 +45,10 @@ def test_mltest_suite():
       model.train_op,
       feed_dict=feed_dict)
 ```
+## Setup
+The function `mltest.setup()` will automatically reset the default graph and seed all of the random values for tensorflow, numpy, and python's random.
 
+## Variables change/don't change.
 You can also specify which variables you expect to train with each training op. A major use case is for GAN training.
 
 ```python
@@ -76,6 +81,7 @@ def test_list_of_variables():
     var_list=vars_that_should_train)
 ```
 
+## Logits Range
 If your model has a specific output range rather than linear, you can test to make sure that range stays consistent. In this example, we assume our logits has a tanh output, so all of our values should fall between 0 and 1.
 
 ```python
@@ -87,6 +93,8 @@ def test_range():
     model.train_op,
     range=(0,1))
 ```
+
+## Input Dependencies
 The last test makes sure all of the variables in feed_dict affect the train_op
 
 ```python
@@ -102,6 +110,8 @@ def test_range():
       input_2: [2.0]
     })
 ```
+
+## Turn off tests
 Finally, you can turn off any of these tests if they do not suit your needs.
 
 ```python
