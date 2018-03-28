@@ -125,7 +125,7 @@ mltest.test_suite(
     )
 ```
 
-## Help pay off my student loans.
-BTC: 1DvNkF8m2bEDzMUuvxADzgGwvFSKgi9dL7
+## Contributors
+Thanks to everyone who has helped!
 
-ETH: 0xd827fb5f818105f29d119397b730a84c16def303
+dekromp 
