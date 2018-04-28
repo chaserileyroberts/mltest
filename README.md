@@ -91,7 +91,7 @@ def test_range():
   mltest.test_suite(
     model.logits,
     model.train_op,
-    range=(0,1))
+    output_range=(0,1))
 ```
 
 ## Input Dependencies
