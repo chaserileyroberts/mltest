@@ -302,7 +302,7 @@ def op_dependencies(target_op):
             run to get the value of target_op.
     """
     queue = collections.deque()
-    if type(target_op) == tf.Operation:
+    if isinstance(target_op, tf.Operation):
         queue.append(target_op)
         visited = set([])
     else:

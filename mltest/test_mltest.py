@@ -198,8 +198,8 @@ def test_unfetchable():
     parent_ops = mltest.op_dependencies(ln)
     # Some random data.
     feed_dict = {
-            x: -1.0,
-            is_training: True
+        x: -1.0,
+        is_training: True
     }
     # Run each op
     print(parent_ops)
@@ -216,14 +216,14 @@ def test_nan_branch():
     branch = tf.placeholder(tf.bool, [])
     x = tf.placeholder(tf.float32)
     val = tf.cond(
-        branch, 
-        true_fn=lambda: tf.log(x), 
+        branch,
+        true_fn=lambda: tf.log(x),
         false_fn=lambda: tf.identity(x))
     cond = val > 0
-    feed_dict = {branch: True, x:-1}
+    feed_dict = {branch: True, x: -1}
     with pytest.raises(mltest.NaNTensorException) as excinfo:
         mltest.assert_never_nan(cond, feed_dict=feed_dict)
 
     # This should not raise an exception
-    feed_dict = {branch: False, x:-1}
+    feed_dict = {branch: False, x: -1}
     mltest.assert_never_nan(cond, feed_dict=feed_dict)
