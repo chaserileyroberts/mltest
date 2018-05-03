@@ -315,11 +315,12 @@ def op_dependencies(target_op):
             if op_input.op not in visited:
                 queue.append(op_input.op)
                 visited.add(op_input)
+    graph = tf.get_default_graph()
+    filtered_ops = [op for op in visited if graph.is_fetchable(op)]
+    return filtered_ops
 
-    return list(visited)
 
-
-def assert_never_nan(logits, feed_dict, sess_conf, init_op):
+def assert_never_nan(logits, feed_dict=None, sess_conf=None, init_op=None):
     """Checks against intermediary nan values.
     Args:
         logits: Output of the model.
@@ -341,7 +342,7 @@ def assert_never_nan(logits, feed_dict, sess_conf, init_op):
                     parent_operation[i].name))
 
 
-def assert_never_inf(logits, feed_dict, sess_conf, init_op):
+def assert_never_inf(logits, feed_dict=None, sess_conf=None, init_op=None):
     """Checks against intermediary inf values.
     Args:
         logits: Output of the model.
