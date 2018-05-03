@@ -161,3 +161,28 @@ def test_full_suite_input_dependency():
     }
     with pytest.raises(mltest.DependencyException) as excinfo:
         mltest.test_suite(output, train_op, feed_dict=feed_dict)
+
+
+def test_dependencies():
+    a = tf.constant(1.0)
+    b = tf.constant(2.0)
+    c = a * b
+    d = c * a
+    op_list = mltest.op_dependencies(d)
+    assert len(op_list) == 4
+
+
+def test_nan_bug():
+    a = tf.constant(-1.0)
+    b = tf.log(a)
+    c = b * a
+    with pytest.raises(mltest.NaNTensorException) as excinfo:
+        mltest.assert_never_nan(c, None, None, None)
+
+
+def test_inf_bug():
+    a = tf.constant(0.0)
+    b = tf.constant(1.0)
+    c = b / a
+    with pytest.raises(mltest.InfTensorException) as excinfo:
+        mltest.assert_never_inf(c, None, None, None)

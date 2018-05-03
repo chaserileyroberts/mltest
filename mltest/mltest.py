@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import random
+import collections
 
 
 class VariablesChangeException(Exception):
@@ -12,6 +13,14 @@ class RangeException(Exception):
 
 
 class DependencyException(Exception):
+    pass
+
+
+class NaNTensorException(Exception):
+    pass
+
+
+class InfTensorException(Exception):
     pass
 
 
@@ -161,7 +170,7 @@ def assert_any_greater_than(
     output = session.run(tensor, feed_dict=feed_dict)
     try:
         assert (output > value).any()
-    except:
+    except BaseException:
         raise RangeException(
             "Error: Tensor {} had all values less than {}".format(
                 tensor.name, value))
@@ -187,7 +196,7 @@ def assert_all_greater_than(
     output = session.run(tensor, feed_dict=feed_dict)
     try:
         assert (output > value).all()
-    except:
+    except BaseException:
         raise RangeException(
             "Error: Tensor {} had some values less than {}".format(
                 tensor.name, value))
@@ -214,7 +223,7 @@ def assert_any_less_than(
     output = session.run(tensor, feed_dict=feed_dict)
     try:
         assert (output < value).any()
-    except:
+    except BaseException:
         raise RangeException(
             "Error: Tensor {} had all values atleast {}".format(
                 tensor.name, value))
@@ -241,7 +250,7 @@ def assert_all_less_than(
     output = session.run(tensor, feed_dict=feed_dict)
     try:
         assert (output < value).all()
-    except:
+    except BaseException:
         raise RangeException(
             "Error: Tensor {} had some values atleast {}".format(
                 tensor.name, value))
@@ -274,7 +283,7 @@ def assert_input_dependency(
             list(feed_dict.items())[:i] + list(feed_dict.items())[i + 1:])
         try:
             session.run(train_op, new_feed_dict)
-        except:
+        except BaseException:
             pass
         else:
             raise DependencyException(
@@ -282,18 +291,90 @@ def assert_input_dependency(
                     kv[0].name))
 
 
+def op_dependencies(target_op):
+    """List of tensors that target_op depends on.
+
+    Code modified from example by mrry.
+    Args:
+        target_op: The operation in question.
+    Returns:
+        op_list: List of operations that are required to
+            run to get the value of target_op.
+    """
+    queue = collections.deque()
+    if type(target_op) == tf.Operation:
+        queue.append(target_op)
+        visited = set([])
+    else:
+        queue.append(target_op.op)
+        visited = set([target_op])
+    while queue:
+        op = queue.popleft()
+        # `op` is not a variable, so search its inputs and obtain
+        for op_input in op.inputs:
+            if op_input.op not in visited:
+                queue.append(op_input.op)
+                visited.add(op_input)
+
+    return list(visited)
+
+
+def assert_never_nan(logits, feed_dict, sess_conf, init_op):
+    """Checks against intermediary nan values.
+    Args:
+        logits: Output of the model.
+        feed_dict: Feed diction required to obtain logits.
+        sess_conf: Session configuration.
+        init_op: initialization operation.
+    Raise:
+        NanTesnorException: If any value is ever NaN.
+    """
+    session = _initalizer_helper(sess_conf, init_op)
+    parent_operation = op_dependencies(logits)
+    results = session.run(parent_operation, feed_dict=feed_dict)
+    # Remove non ops.
+    results = [r for r in results if r is not None]
+    for i, result in enumerate(results):
+        if np.isnan(result).any():
+            raise NaNTensorException(
+                "Operation {} had a nan value.".format(
+                    parent_operation[i].name))
+
+
+def assert_never_inf(logits, feed_dict, sess_conf, init_op):
+    """Checks against intermediary inf values.
+    Args:
+        logits: Output of the model.
+        feed_dict: Feed diction required to obtain logits.
+        sess_conf: Session configuration.
+        init_op: initialization operation.
+    Raise:
+        InfTesnorException: If any value is ever inf.
+    """
+    session = _initalizer_helper(sess_conf, init_op)
+    parent_operation = op_dependencies(logits)
+    results = session.run(parent_operation, feed_dict=feed_dict)
+    for i, result in enumerate(results):
+        if np.isinf(result).any():
+            raise InfTensorException(
+                "Operation {} had an inf value.".format(
+                    parent_operation[i].name))
+
+
 def test_suite(
-    out_tensor,
-    train_op,
-    sess_conf=None,
-    output_range=None,
-    scope="",
-    var_list=None,
-    feed_dict=None,
-    init_op=None,
-    test_all_inputs_dependent=True,
-    test_other_vars_dont_change=True,
-        test_output_range=True):
+        out_tensor,
+        train_op,
+        sess_conf=None,
+        output_range=None,
+        scope="",
+        var_list=None,
+        feed_dict=None,
+        init_op=None,
+        test_all_inputs_dependent=True,
+        test_other_vars_dont_change=True,
+        test_output_range=True,
+        test_nan_vals=True,
+        test_inf_vals=True):
     """Full set of common tests to run for most ML programs.
     Args:
       out_tensor: Output tensor of your model.
@@ -361,3 +442,9 @@ def test_suite(
     # Run the dependency tests.
     if test_all_inputs_dependent:
         assert_input_dependency(train_op, feed_dict, sess_conf, init_op)
+    if test_nan_vals:
+        assert_never_nan(out_tensor, feed_dict, sess_conf, init_op)
+        assert_never_nan(train_op, feed_dict, sess_conf, init_op)
+    if test_inf_vals:
+        assert_never_inf(out_tensor, feed_dict, sess_conf, init_op)
+        assert_never_nan(train_op, feed_dict, sess_conf, init_op)
