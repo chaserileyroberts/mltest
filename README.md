@@ -111,6 +111,23 @@ def test_range():
     })
 ```
 
+## NaN and Inf Tensors
+Badly initalized or normalized layers can cause NaN or Inf ouputs that a developer may not have been prepared to handle. This isn't caught with < or > comparisons, so we must test for each directly. These have been added to the test suite aswell.
+```python
+
+def test_nan():
+  x = tf.constant(-1.0)
+  y = tf.log(x) # This will output a NaN value.
+  mltest.assert_never_nan(y)
+
+def test_inf():
+  a = tf.constant(1.0)
+  b = tf.constant(0.0)
+  c = a / b # This will output inf.
+  mltest.assert_never_inf(c)
+```
+There are still some issues related to unfectable tensors, so this will not catch all inf or NaN bugs as of yet.
+
 ## Turn off tests
 Finally, you can turn off any of these tests if they do not suit your needs.
 
