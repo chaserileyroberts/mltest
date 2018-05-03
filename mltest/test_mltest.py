@@ -186,3 +186,24 @@ def test_inf_bug():
     c = b / a
     with pytest.raises(mltest.InfTensorException) as excinfo:
         mltest.assert_never_inf(c, None, None, None)
+
+
+def test_unfetchable():
+    # Simple dummy graph that contains not fetchable ops.
+    x = tf.placeholder(tf.float32)
+    is_training = tf.placeholder(tf.bool, [])
+    do = tf.layers.dropout(x, rate=0.0, training=is_training)
+    ln = tf.log(do)
+    # Get the parent ops.
+    parent_ops = mltest.op_dependencies(ln)
+    # Some random data.
+    feed_dict = {
+            x: -1.0,
+            is_training: True
+    }
+    # Run each op
+    print(parent_ops)
+    with tf.Session() as session:
+        results = session.run(parent_ops, feed_dict=feed_dict)
+        assert np.isnan(session.run(ln, feed_dict=feed_dict)).any()
+            
