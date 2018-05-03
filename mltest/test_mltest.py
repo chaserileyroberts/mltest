@@ -211,15 +211,26 @@ def test_unfetchable():
         mltest.assert_never_nan(ln, feed_dict=feed_dict)
 
 
+def test_nan_without_branch():
+    x = tf.placeholder(tf.float32)
+    cond1 =tf.log(x) > 0
+    cond2 = tf.identity(x) > 0
+    feed_dict = {x:-1}
+    with pytest.raises(mltest.NaNTensorException) as excinfo:
+        mltest.assert_never_nan(cond1, feed_dict=feed_dict)
+
+    # This should not raise an exception
+    feed_dict = {x:-1}
+    mltest.assert_never_nan(cond2, feed_dict=feed_dict)  
+
 def test_nan_branch():
     # Sketchy code that is hard to find.
     branch = tf.placeholder(tf.bool, [])
     x = tf.placeholder(tf.float32)
-    val = tf.cond(
+    cond = tf.cond(
         branch,
-        true_fn=lambda: tf.log(x),
-        false_fn=lambda: tf.identity(x))
-    cond = val > 0
+        true_fn=lambda: tf.log(x) > 0,
+        false_fn=lambda: tf.identity(x) > 0)
     feed_dict = {branch: True, x: -1}
     with pytest.raises(mltest.NaNTensorException) as excinfo:
         mltest.assert_never_nan(cond, feed_dict=feed_dict)
