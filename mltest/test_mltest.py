@@ -213,18 +213,20 @@ def test_unfetchable():
 
 def test_nan_without_branch():
     x = tf.placeholder(tf.float32)
-    cond1 =tf.log(x) > 0
+    cond1 = tf.log(x) > 0
     cond2 = tf.identity(x) > 0
-    feed_dict = {x:-1}
+    feed_dict = {x: -1}
     with pytest.raises(mltest.NaNTensorException) as excinfo:
         mltest.assert_never_nan(cond1, feed_dict=feed_dict)
 
     # This should not raise an exception
-    feed_dict = {x:-1}
-    mltest.assert_never_nan(cond2, feed_dict=feed_dict)  
+    feed_dict = {x: -1}
+    mltest.assert_never_nan(cond2, feed_dict=feed_dict)
 
+
+@pytest.mark.skip(reason="Not functioning. Need to figure out how to test")
 def test_nan_branch():
-    # Sketchy code that is hard to find.
+    # Sketchy code that is hard to detect.
     branch = tf.placeholder(tf.bool, [])
     x = tf.placeholder(tf.float32)
     cond = tf.cond(
@@ -238,3 +240,21 @@ def test_nan_branch():
     # This should not raise an exception
     feed_dict = {branch: False, x: -1}
     mltest.assert_never_nan(cond, feed_dict=feed_dict)
+
+
+def test_suite_with_cond():
+    # Sketchy code that is hard to find.
+    branch = tf.placeholder(tf.bool, [])
+    x = tf.placeholder(tf.float32)
+    cond = tf.cond(
+        branch,
+        true_fn=lambda: 2 * x,
+        false_fn=lambda: tf.identity(x))
+    casted = tf.cast(cond, tf.float32)
+    casted.set_shape((2, 1))
+    output = _mlp_correct_builder(casted)
+    train = tf.train.AdamOptimizer().minimize((output - 3.0)**2)
+    feed_dict = {branch: True, x: [[-1.0], [1.0]]}
+    mltest.test_suite(cond, train, feed_dict=feed_dict)
+    feed_dict = {branch: False, x: [[-1.0], [1.0]]}
+    mltest.test_suite(cond, train, feed_dict=feed_dict)
