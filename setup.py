@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='mltest',
-    version='0.1.2',
+    version='0.1.3',
     packages=['mltest'],
     license="MIT",
     author="Chase Roberts",
