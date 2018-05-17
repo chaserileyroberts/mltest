@@ -3,7 +3,7 @@ import numpy as np
 import random
 from tensorflow.python import debug as tfdbg
 from os import listdir, path
-import tempfile
+import backports.tempfile as tempfile
 
 
 class VariablesChangeException(Exception):
