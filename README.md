@@ -116,13 +116,13 @@ Badly initalized or normalized layers can cause NaN or Inf ouputs that a develop
 ```python
 
 def test_nan():
-  x = tf.constant(-1.0)
+  x = tf.Variable(-1.0)
   y = tf.log(x) # This will output a NaN value.
   mltest.assert_never_nan(y)
 
 def test_inf():
-  a = tf.constant(1.0)
-  b = tf.constant(0.0)
+  a = tf.Variable(1.0)
+  b = tf.Variable(0.0)
   c = a / b # This will output inf.
   mltest.assert_never_inf(c)
 ```
