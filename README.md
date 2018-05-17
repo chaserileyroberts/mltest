@@ -138,7 +138,9 @@ mltest.test_suite(
                                     # affect train_op.
     test_other_vars_dont_change=True, # Test that all vars outside 
                                       # of scope or var_list do not change.
-    test_output_range=True # Test output range of the first argument.
+    test_output_range=True, # Test output range of the first argument.
+    test_nan_vals=True, # Check for NaN values in all tensors.
+    test_inf_vals=True # Check for Inf values in all tensors.
     )
 ```
 
