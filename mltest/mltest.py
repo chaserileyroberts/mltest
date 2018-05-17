@@ -406,7 +406,7 @@ def test_suite(
           train_op depends on in feed_dict.
     """
 
-    # Grab the nessissary variables.
+    # Grab the necessary variables.
     if var_list is None:
         variables = tf.get_collection(
             tf.GraphKeys.GLOBAL_VARIABLES, scope=scope)
