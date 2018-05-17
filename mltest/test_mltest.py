@@ -240,4 +240,16 @@ def test_rnn_simple():
         input_: np.random.uniform(-1, 1, size=(8, 10, 6)).astype(np.float32),
         target: np.random.uniform(-1, 1, size=(8, 5))}
 
-    mltest.assert_never_nan(last_hidden_state, feed_dict=feed_dict)
+    mltest.test_suite(last_hidden_state, train, feed_dict=feed_dict)
+
+def test_rnn_known_nan():
+    input_ = tf.placeholder(tf.float32, [None, 10, 6], name='input_')
+    # Log activation will cause a NaN.
+    last_hidden_state = tf.keras.layers.SimpleRNN(
+        5, activation=tf.log)(input_)
+
+    feed_dict = {
+        input_: np.random.uniform(-1, 1, size=(8, 10, 6)).astype(np.float32)
+        }
+    with pytest.raises(mltest.NaNTensorException) as excinfo:
+        mltest.assert_never_nan(last_hidden_state, feed_dict=feed_dict)
