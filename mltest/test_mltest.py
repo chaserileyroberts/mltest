@@ -242,6 +242,7 @@ def test_rnn_simple():
 
     mltest.test_suite(last_hidden_state, train, feed_dict=feed_dict)
 
+
 def test_rnn_known_nan():
     input_ = tf.placeholder(tf.float32, [None, 10, 6], name='input_')
     # Log activation will cause a NaN.
