@@ -1,7 +1,9 @@
 import tensorflow as tf
 import numpy as np
 import random
-import collections
+from tensorflow.python import debug as tfdbg
+from os import listdir, path
+import tempfile 
 
 
 class VariablesChangeException(Exception):
@@ -291,75 +293,70 @@ def assert_input_dependency(
                     kv[0].name))
 
 
-def op_dependencies(target_op):
-    """List of tensors that target_op depends on.
 
-    Code modified from example by mrry.
+def run_dump(in_tensor, check, feed_dict=None, sess_conf=None, init_op=None):
+    """Checks against intermediary tensor values with a DebugDumpDir.
     Args:
-        target_op: The operation in question.
+        in_tensor: Tensor to be run (can also be training op).
+        check: Check function. See tfdbg.DebugDumpDir.find() for details.
+        feed_dict: Feed diction required to obtain in_tensor.
+        sess_conf: Session configuration.
+        init_op: initialization operation.
     Returns:
-        op_list: List of operations that are required to
-            run to get the value of target_op.
+        results: Results of the check.
     """
-    queue = collections.deque()
-    if isinstance(target_op, tf.Operation):
-        queue.append(target_op)
-        visited = set([])
-    else:
-        queue.append(target_op.op)
-        visited = set([target_op])
-    while queue:
-        op = queue.popleft()
-        # `op` is not a variable, so search its inputs and obtain
-        for op_input in op.inputs:
-            if op_input.op not in visited:
-                queue.append(op_input.op)
-                visited.add(op_input)
-    graph = tf.get_default_graph()
-    filtered_ops = [op for op in visited if graph.is_fetchable(op)]
-    return filtered_ops
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        session = _initalizer_helper(sess_conf, init_op)
+        # Make the session dump intermediary tensors.
+        session = tfdbg.DumpingDebugWrapperSession(session, tmp_dir)
+        # Run the tensor.
+        session.run(in_tensor, feed_dict=feed_dict)
+        # Gross and hacky. Is there a better way to get this value?
+        run_dir = path.join(tmp_dir, listdir(tmp_dir)[0])
+        debug_dump = tfdbg.DebugDumpDir(run_dir)
+        results = debug_dump.find(check)
+    return results
 
-
-def assert_never_nan(logits, feed_dict=None, sess_conf=None, init_op=None):
+def assert_never_nan(in_tensor, feed_dict=None, sess_conf=None, init_op=None):
     """Checks against intermediary nan values.
     Args:
-        logits: Output of the model.
-        feed_dict: Feed diction required to obtain logits.
+        in_tensor: Tensor to be run (can also be training op).
+        feed_dict: Feed diction required to obtain in_tensor.
         sess_conf: Session configuration.
         init_op: initialization operation.
     Raise:
         NanTesnorException: If any value is ever NaN.
     """
-    session = _initalizer_helper(sess_conf, init_op)
-    parent_operation = op_dependencies(logits)
-    results = session.run(parent_operation, feed_dict=feed_dict)
-    # Remove non ops.
-    results = [r for r in results if r is not None]
-    for i, result in enumerate(results):
-        if np.isnan(result).any():
-            raise NaNTensorException(
-                "Operation {} had a nan value.".format(
-                    parent_operation[i].name))
+    def check(_, val):
+        if isinstance(val,  np.ndarray):
+            return np.isnan(val).any()
+        else:
+            return False
+    results = run_dump(in_tensor, check, feed_dict, sess_conf, init_op)
+    if results:
+        raise NaNTensorException(
+            "There was a nan value in tensor {}".format(results[0].node_name))
 
 
-def assert_never_inf(logits, feed_dict=None, sess_conf=None, init_op=None):
-    """Checks against intermediary inf values.
+def assert_never_inf(in_tensor, feed_dict=None, sess_conf=None, init_op=None):
+    """Checks against intermediary nan values.
     Args:
-        logits: Output of the model.
-        feed_dict: Feed diction required to obtain logits.
+        in_tensor: Tensor to be run (can also be training op).
+        feed_dict: Feed diction required to obtain in_tensor.
         sess_conf: Session configuration.
         init_op: initialization operation.
     Raise:
-        InfTesnorException: If any value is ever inf.
+        NanTesnorException: If any value is ever NaN.
     """
-    session = _initalizer_helper(sess_conf, init_op)
-    parent_operation = op_dependencies(logits)
-    results = session.run(parent_operation, feed_dict=feed_dict)
-    for i, result in enumerate(results):
-        if np.isinf(result).any():
-            raise InfTensorException(
-                "Operation {} had an inf value.".format(
-                    parent_operation[i].name))
+    def check(_, val):
+        if isinstance(val,  np.ndarray):
+            return np.isinf(val).any()
+        else:
+            return False
+    results = run_dump(in_tensor, check, feed_dict, sess_conf, init_op)
+    if results:
+        raise InfTensorException(
+            "There was an inf value in tensor {}".format(results[0].node_name))
 
 
 def test_suite(
@@ -447,5 +444,6 @@ def test_suite(
         assert_never_nan(out_tensor, feed_dict, sess_conf, init_op)
         assert_never_nan(train_op, feed_dict, sess_conf, init_op)
     if test_inf_vals:
-        assert_never_inf(out_tensor, feed_dict, sess_conf, init_op)
-        assert_never_nan(train_op, feed_dict, sess_conf, init_op)
+        pass
+        #assert_never_inf(out_tensor, feed_dict, sess_conf, init_op)
+        #assert_never_inf(train_op, feed_dict, sess_conf, init_op)
