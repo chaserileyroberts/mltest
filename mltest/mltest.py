@@ -3,7 +3,7 @@ import numpy as np
 import random
 from tensorflow.python import debug as tfdbg
 from os import listdir, path
-import tempfile 
+import tempfile
 
 
 class VariablesChangeException(Exception):
@@ -293,7 +293,6 @@ def assert_input_dependency(
                     kv[0].name))
 
 
-
 def run_dump(in_tensor, check, feed_dict=None, sess_conf=None, init_op=None):
     """Checks against intermediary tensor values with a DebugDumpDir.
     Args:
@@ -317,6 +316,7 @@ def run_dump(in_tensor, check, feed_dict=None, sess_conf=None, init_op=None):
         results = debug_dump.find(check)
     return results
 
+
 def assert_never_nan(in_tensor, feed_dict=None, sess_conf=None, init_op=None):
     """Checks against intermediary nan values.
     Args:
@@ -328,7 +328,7 @@ def assert_never_nan(in_tensor, feed_dict=None, sess_conf=None, init_op=None):
         NanTesnorException: If any value is ever NaN.
     """
     def check(_, val):
-        if isinstance(val,  np.ndarray):
+        if isinstance(val, np.ndarray):
             return np.isnan(val).any()
         else:
             return False
@@ -349,7 +349,7 @@ def assert_never_inf(in_tensor, feed_dict=None, sess_conf=None, init_op=None):
         NanTesnorException: If any value is ever NaN.
     """
     def check(_, val):
-        if isinstance(val,  np.ndarray):
+        if isinstance(val, np.ndarray):
             return np.isinf(val).any()
         else:
             return False
@@ -444,6 +444,5 @@ def test_suite(
         assert_never_nan(out_tensor, feed_dict, sess_conf, init_op)
         assert_never_nan(train_op, feed_dict, sess_conf, init_op)
     if test_inf_vals:
-        pass
-        #assert_never_inf(out_tensor, feed_dict, sess_conf, init_op)
-        #assert_never_inf(train_op, feed_dict, sess_conf, init_op)
+        assert_never_inf(out_tensor, feed_dict, sess_conf, init_op)
+        assert_never_inf(train_op, feed_dict, sess_conf, init_op)

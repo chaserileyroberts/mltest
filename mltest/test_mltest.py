@@ -162,6 +162,7 @@ def test_full_suite_input_dependency():
     with pytest.raises(mltest.DependencyException) as excinfo:
         mltest.test_suite(output, train_op, feed_dict=feed_dict)
 
+
 def test_nan_bug():
     a = tf.Variable(-1.0)
     b = tf.log(a)
@@ -177,6 +178,7 @@ def test_inf_bug():
     with pytest.raises(mltest.InfTensorException) as excinfo:
         mltest.assert_never_inf(c)
 
+
 def test_nan_without_branch():
     x = tf.placeholder(tf.float32)
     cond1 = tf.log(x) > 0
@@ -190,7 +192,6 @@ def test_nan_without_branch():
     mltest.assert_never_nan(cond2, feed_dict=feed_dict)
 
 
-#@pytest.mark.skip(reason="Not functioning. Need to figure out how to test")
 def test_nan_branch():
     # Sketchy code that is hard to detect.
     branch = tf.placeholder(tf.bool, [])
@@ -224,6 +225,7 @@ def test_suite_with_cond():
     mltest.test_suite(cond, train, feed_dict=feed_dict)
     feed_dict = {branch: False, x: [[-1.0], [1.0]]}
     mltest.test_suite(cond, train, feed_dict=feed_dict)
+
 
 def test_rnn_simple():
     input_ = tf.placeholder(tf.float32, [None, 10, 6], name='input_')
