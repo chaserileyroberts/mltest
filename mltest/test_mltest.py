@@ -163,17 +163,8 @@ def test_full_suite_input_dependency():
         mltest.test_suite(output, train_op, feed_dict=feed_dict)
 
 
-def test_dependencies():
-    a = tf.constant(1.0)
-    b = tf.constant(2.0)
-    c = a * b
-    d = c * a
-    op_list = mltest.op_dependencies(d)
-    assert len(op_list) == 4
-
-
 def test_nan_bug():
-    a = tf.constant(-1.0)
+    a = tf.Variable(-1.0)
     b = tf.log(a)
     c = b * a
     with pytest.raises(mltest.NaNTensorException) as excinfo:
@@ -181,34 +172,11 @@ def test_nan_bug():
 
 
 def test_inf_bug():
-    a = tf.constant(0.0)
-    b = tf.constant(1.0)
+    a = tf.Variable(0.0)
+    b = tf.Variable(1.0)
     c = b / a
     with pytest.raises(mltest.InfTensorException) as excinfo:
         mltest.assert_never_inf(c)
-
-
-def test_unfetchable():
-    # Simple dummy graph that contains not fetchable ops.
-    x = tf.placeholder(tf.float32)
-    is_training = tf.placeholder(tf.bool, [])
-    do = tf.layers.dropout(x, rate=0.0, training=is_training)
-    ln = tf.log(do)
-    # Get the parent ops.
-    parent_ops = mltest.op_dependencies(ln)
-    # Some random data.
-    feed_dict = {
-        x: -1.0,
-        is_training: True
-    }
-    # Run each op
-    print(parent_ops)
-    with tf.Session() as session:
-        results = session.run(parent_ops, feed_dict=feed_dict)
-        assert np.isnan(session.run(ln, feed_dict=feed_dict)).any()
-
-    with pytest.raises(mltest.NaNTensorException) as excinfo:
-        mltest.assert_never_nan(ln, feed_dict=feed_dict)
 
 
 def test_nan_without_branch():
@@ -224,7 +192,6 @@ def test_nan_without_branch():
     mltest.assert_never_nan(cond2, feed_dict=feed_dict)
 
 
-@pytest.mark.skip(reason="Not functioning. Need to figure out how to test")
 def test_nan_branch():
     # Sketchy code that is hard to detect.
     branch = tf.placeholder(tf.bool, [])
@@ -258,3 +225,32 @@ def test_suite_with_cond():
     mltest.test_suite(cond, train, feed_dict=feed_dict)
     feed_dict = {branch: False, x: [[-1.0], [1.0]]}
     mltest.test_suite(cond, train, feed_dict=feed_dict)
+
+
+def test_rnn_simple():
+    input_ = tf.placeholder(tf.float32, [None, 10, 6], name='input_')
+    last_hidden_state = tf.keras.layers.SimpleRNN(
+        5, activation=tf.nn.tanh)(input_)
+
+    target = tf.placeholder(tf.float32, [None, 5])
+    loss = tf.reduce_mean(tf.square(target - last_hidden_state))
+    train = tf.train.AdamOptimizer().minimize(loss)
+
+    feed_dict = {
+        input_: np.random.uniform(-1, 1, size=(8, 10, 6)).astype(np.float32),
+        target: np.random.uniform(-1, 1, size=(8, 5))}
+
+    mltest.test_suite(last_hidden_state, train, feed_dict=feed_dict)
+
+
+def test_rnn_known_nan():
+    input_ = tf.placeholder(tf.float32, [None, 10, 6], name='input_')
+    # Log activation will cause a NaN.
+    last_hidden_state = tf.keras.layers.SimpleRNN(
+        5, activation=tf.log)(input_)
+
+    feed_dict = {
+        input_: np.random.uniform(-1, 1, size=(8, 10, 6)).astype(np.float32)
+        }
+    with pytest.raises(mltest.NaNTensorException) as excinfo:
+        mltest.assert_never_nan(last_hidden_state, feed_dict=feed_dict)
