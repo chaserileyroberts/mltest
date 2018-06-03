@@ -3,6 +3,7 @@ Machine learning testing framework.
 
 [![Build Status](https://travis-ci.org/Thenerdstation/mltest.svg?branch=master)](https://travis-ci.org/Thenerdstation/mltest)
 
+[![Downloads](http://pepy.tech/badge/mltest)](http://pepy.tech/project/mltest)
 ## How to install
 
 You can either use it directly from pip
