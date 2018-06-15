@@ -127,7 +127,6 @@ def test_inf():
   c = a / b # This will output inf.
   mltest.assert_never_inf(c)
 ```
-There are still some issues related to unfectable tensors, so this will not catch all inf or NaN bugs as of yet.
 
 ## Turn off tests
 Finally, you can turn off any of these tests if they do not suit your needs.
