@@ -1,9 +1,11 @@
 # mltest
-Machine learning testing framework.
+Machine learning testing framework for tensorflow. If you are looking for a pytorch version, go check out the [port](
+https://github.com/suriyadeepan/torchtest) suriyadeepan made!
 
 [![Build Status](https://travis-ci.org/Thenerdstation/mltest.svg?branch=master)](https://travis-ci.org/Thenerdstation/mltest)
 
 [![Downloads](http://pepy.tech/badge/mltest)](http://pepy.tech/project/mltest)
+
 ## How to install
 
 You can either use it directly from pip
