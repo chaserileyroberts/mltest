@@ -26,7 +26,7 @@ class InfTensorException(Exception):
     pass
 
 
-def setup(tf_seed=0, np_seed=0, python_seed=0, reset_graph=True):
+def setup(tf_seed=0, np_seed=0, python_seed=0, reset_graph=True, set_keras_session=True):
     """Automatically setup standard testing configuration.
     Resets tensorflow's default graph and sets various seeds.
     Args:
@@ -43,6 +43,9 @@ def setup(tf_seed=0, np_seed=0, python_seed=0, reset_graph=True):
         np.random.seed(np_seed)
     if python_seed is not None:
         random.seed(python_seed)
+    if set_keras_session:
+      sess = tf.Session(graph=tf.get_default_graph())
+      tf.keras.backend.set_session(sess)
 
 
 def _initalizer_helper(sess_conf, init_op):
