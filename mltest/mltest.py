@@ -26,7 +26,8 @@ class InfTensorException(Exception):
     pass
 
 
-def setup(tf_seed=0, np_seed=0, python_seed=0, reset_graph=True, set_keras_session=True):
+def setup(tf_seed=0, np_seed=0, python_seed=0, reset_graph=True,
+          set_keras_session=True):
     """Automatically setup standard testing configuration.
     Resets tensorflow's default graph and sets various seeds.
     Args:
