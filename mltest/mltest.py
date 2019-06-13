@@ -44,8 +44,8 @@ def setup(tf_seed=0, np_seed=0, python_seed=0, reset_graph=True, set_keras_sessi
     if python_seed is not None:
         random.seed(python_seed)
     if set_keras_session:
-      sess = tf.Session(graph=tf.get_default_graph())
-      tf.keras.backend.set_session(sess)
+        sess = tf.Session(graph=tf.get_default_graph())
+        tf.keras.backend.set_session(sess)
 
 
 def _initalizer_helper(sess_conf, init_op):
