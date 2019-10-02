@@ -37,7 +37,7 @@ def setup(tf_seed=0, np_seed=0, python_seed=0, reset_graph=True,
         reset_graph: Flag to reset the default graph. Default is True.
     """
     if reset_graph:
-        tf.reset_default_graph()
+        tf.compat.v1.reset_default_graph()
     if tf_seed is not None:
         tf.set_random_seed(tf_seed)
     if np_seed is not None:
