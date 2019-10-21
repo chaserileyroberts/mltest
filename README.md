@@ -1,4 +1,8 @@
+# THIS LIBRARY HAS BEEN DEPRECATED
+With the release of TF2.0, this library is largely broken and we have no plans on fixing it. Most of the tests (especially the "make sure all variables are modified during training") are already included in Keras.
+
 # mltest
+
 Machine learning testing framework for tensorflow. If you are looking for a pytorch version, go check out the [port](
 https://github.com/suriyadeepan/torchtest) suriyadeepan made!
 
